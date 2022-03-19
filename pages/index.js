@@ -1,5 +1,5 @@
 import Layout from '../components/layout/Layout';
-import Home from '../components/Home';
+import Home from '../components/home';
 import { wrapper } from '../store/store';
 import { getRooms } from '../store/actions/roomActions';
 
