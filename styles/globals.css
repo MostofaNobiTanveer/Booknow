@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer {
+  @font-face {
+    font-family: 'Neutraface';
+    src: url('/fonts/Neutraface-Text-Regular.otf') format('opentype');
+  }
+}
+
+/* disable mobile tap highlights */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* hide scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
