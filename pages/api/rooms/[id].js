@@ -13,7 +13,7 @@ const handler = nc({ onError });
 
 dbConnect();
 
-handler.post(getSingleRoom);
+handler.get(getSingleRoom);
 handler.put(updateRoom);
 handler.delete(deleteRoom);
 

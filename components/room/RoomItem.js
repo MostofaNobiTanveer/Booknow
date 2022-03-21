@@ -4,7 +4,7 @@ import Rating from '../miscellaneous/Rating';
 
 const RoomItem = ({ room }) => {
   return (
-    <div className="bg-white rounded-md group">
+    <div className="bg-white border shadow-md rounded-md group">
       <div className="flex justify-center items-center leading-none">
         <div className="relative bg-white h-40 w-5/6 max-w-sm object-cover rounded-md shadow-2xl mt-6 transform -translate-y-10 group-hover:-translate-y-4 transition duration-300">
           <Image
@@ -18,7 +18,7 @@ const RoomItem = ({ room }) => {
       </div>
       <div className="p-4 space-y-3">
         {/* name */}
-        <Link href={`/rooms/${room._id}`}>
+        <Link href={`/room/${room._id}`}>
           <a className="block mb-2 text-lg font-medium hover:underline">
             {room.name}
           </a>
