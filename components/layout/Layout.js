@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import Header from './Header';
-import { ToastContainer } from 'react-toastify';
 import NarrowSidebar from './NarrowSidebar';
-import 'react-toastify/dist/ReactToastify.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import Contacts from './Contacts';
 
 const Layout = ({ children, title = 'Booknow | Book your stay' }) => {
+  const [isFilterOffcanvasOpen, setIsFilterOffcanvasOpen] = useState(false);
+  const openFilterOffcanvas = () => setIsFilterOffcanvasOpen(true);
+  const closeFilterOffcanvas = () => setIsFilterOffcanvasOpen(false);
+
   return (
     <div className="h-screen hide-scrollbar overflow-hidden flex flex-col">
       <Head>
@@ -16,15 +18,17 @@ const Layout = ({ children, title = 'Booknow | Book your stay' }) => {
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      {/* toastify */}
-      <ToastContainer position="bottom-right" />
 
       {/* <!-- Top nav--> */}
-      <Header />
+      <Header
+        closeFilterOffcanvas={closeFilterOffcanvas}
+        isFilterOffcanvasOpen={isFilterOffcanvasOpen}
+        openFilterOffcanvas={openFilterOffcanvas}
+      />
 
       <div className="flex-1 flex overflow-hidden">
         {/* Narrow sidebar */}
-        <NarrowSidebar />
+        <NarrowSidebar openFilterOffcanvas={openFilterOffcanvas} />
 
         {/* Main area */}
         <main className="w-full border-t border-gray-200">

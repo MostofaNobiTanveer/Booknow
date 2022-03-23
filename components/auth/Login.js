@@ -3,9 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { GiMoebiusTriangle } from 'react-icons/gi';
 import { BsChevronRight, BsEyeSlash, BsEye, BsEnvelope } from 'react-icons/bs';
 import { FiLock, FiUserPlus, FiLogIn } from 'react-icons/fi';
+import { signIn } from 'next-auth/react';
+import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
 
 // cmponent
 const Login = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({});
   const [showPass, setShowPass] = useState(false);
 
@@ -14,15 +19,36 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+
+    setLoading(true);
+
+    const result = await signIn('credentials', {
+      redirect: false,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    setLoading(false);
+
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      router.push('/');
+      toast.success('Successfully logged in');
+    }
   };
 
   return (
     <section className="py-16 w-full grid place-items-center mx-auto px-3 md:px-6 text-black">
       <div className="relative max-w-xl flex flex-col w-full bg-white border rounded-xl mx-auto md:py-10 px-4 md:px-0 py-0">
-        <div className="mt-5 md:mt-0 w-full relative">
+        <div
+          className={`${
+            loading &&
+            'opacity-40 select-none pointer-events-none animate-pulse'
+          } mt-5 md:mt-0 w-full relative`}
+        >
           <div className="overflow-hidden h-full flex items-center">
             <div className="md:px-10 py-5 flex-1 grid grid-cols-6 gap-6">
               <h3 className="tracking-wide text-4xl">Login</h3>
@@ -83,12 +109,10 @@ const Login = () => {
                 <div>
                   <button
                     type="submit"
-                    disabled={
-                      !formData?.email || formData?.password?.length < 6
-                    }
-                    className="w-full disabled:opacity-90 disabled:cursor-not-allowed flex items-center gap-2 justify-center py-2 px-4 border border-transparent rounded-md text-sm font-normal bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                    disabled={!formData.email || !formData.password || loading}
+                    className="w-full disabled:opacity-90 uppercase disabled:cursor-not-allowed flex items-center gap-2 justify-center py-2 px-4 border border-transparent rounded-md text-sm font-medium bg-black hover:bg-opacity-80 disabled:hover:bg-opacity-100 text-white tracking-wider focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-black"
                   >
-                    <span>Log in</span>
+                    <span>{loading ? 'Logging...' : 'Log in'}</span>
                     <FiLogIn className="text-xl" />
                   </button>
                 </div>

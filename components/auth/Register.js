@@ -1,6 +1,6 @@
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
 
 // react icons
 import {
@@ -14,51 +14,90 @@ import { GiMoebiusTriangle } from 'react-icons/gi';
 import { RiUserSmileLine } from 'react-icons/ri';
 import { FiLock, FiUserPlus, FiUser, FiLogIn } from 'react-icons/fi';
 import Image from 'next/image';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearErrors } from '../../store/actions/userActions';
+import { toast } from 'react-toastify';
 
 // cmponent
 const Register = () => {
-  const [profilePic, setProfilePic] = useState(null);
-  const [formData, setFormData] = useState({});
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const [user, setUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const { name, email, password } = user;
+  const [avatar, setAvatar] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const { success, error, loading } = useSelector((state) => state.auth);
   const [showPass, setShowPass] = useState(false);
 
-  const disableFutureDate = () => {
-    const today = new Date();
-    const dd = String(today.getDate() - 1).padStart(2, '0');
-    const mm = String(today.getMonth() - 1).padStart(2, '0'); //January is 0!
-    const yyyy = today.getFullYear();
-    return yyyy + '-' + mm + '-' + dd;
-  };
+  useEffect(() => {
+    if (success) {
+      toast.success('Account created successfully');
+      router.push('/login');
+    }
+    if (error) {
+      toast.error(error);
+      dispatch(clearErrors());
+    }
+  }, [success, error, dispatch, router]);
 
   const handleOnChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (e.target.name === 'avatar') {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (reader.readyState === 2) {
+          setAvatar(reader.result);
+          setAvatarPreview(reader.result);
+        }
+      };
+
+      reader.readAsDataURL(e.target.files[0]);
+    } else {
+      setUser({ ...user, [e.target.name]: e.target.value });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const userData = {
+      name,
+      email,
+      password,
+      avatar,
+    };
+
+    dispatch(registerUser(userData));
   };
 
   return (
     <section className="py-10 w-full grid place-items-center mx-auto px-3 md:px-6 text-black">
       <div className="relative max-w-xl flex flex-col w-full bg-white border rounded-xl mx-auto md:py-10 px-4 md:px-0 py-0">
-        <div className="mt-5 md:mt-0 w-full relative">
+        <div
+          className={`mt-5 md:mt-0 w-full relative ${
+            loading &&
+            'opacity-40 select-none pointer-events-none animate-pulse'
+          }`}
+        >
           <div className="overflow-hidden h-full flex items-center">
             <div className="md:px-10 py-5 flex-1 grid grid-cols-6 gap-6">
               <h3 className="tracking-wide text-4xl">Register</h3>
               <form onSubmit={handleSubmit} className="col-span-6 space-y-6">
                 {/* Full name */}
                 <div>
-                  <label
-                    htmlFor="fullname"
-                    className="text-sm flex items-center"
-                  >
+                  <label htmlFor="name" className="text-sm flex items-center">
                     <FiUser className="w-4 h-4 mr-2" />
                     Full name<span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1">
                     <input
-                      id="fullname"
-                      name="fullname"
+                      id="name"
+                      name="name"
+                      value={name}
                       onChange={handleOnChange}
                       autoComplete="name"
                       type="text"
@@ -78,6 +117,7 @@ const Register = () => {
                     <input
                       id="email"
                       name="email"
+                      value={email}
                       onChange={handleOnChange}
                       autoComplete="email"
                       type="email"
@@ -112,6 +152,7 @@ const Register = () => {
                     <input
                       id="password"
                       name="password"
+                      value={password}
                       onChange={handleOnChange}
                       type={showPass ? 'text' : 'password'}
                       placeholder="*********"
@@ -128,9 +169,9 @@ const Register = () => {
                   </label>
                   <div className="mt-3 flex items-center w-full">
                     <div className="relative h-28 w-28 rounded-full border border-gray-300">
-                      {profilePic ? (
+                      {avatarPreview ? (
                         <Image
-                          src={profilePic}
+                          src={avatarPreview}
                           alt="profile"
                           layout="fill"
                           objectFit="cover"
@@ -147,16 +188,10 @@ const Register = () => {
                       )}
                       <label className="absolute -right-4 bottom-2 cursor-pointer ml-5 bg-white py-1.5 px-3 border border-gray-300 rounded-md shadow-sm text-xs leading-4 font-medium hover:bg-gray-100 focus:outline-none">
                         <input
-                          id="profilePicture"
-                          name="profilePicture"
+                          id="avatar"
+                          name="avatar"
                           type="file"
-                          onChange={(event) => {
-                            if (event.target.files && event.target.files[0]) {
-                              setProfilePic(
-                                URL.createObjectURL(event.target.files[0])
-                              );
-                            }
-                          }}
+                          onChange={handleOnChange}
                           accept="image/*"
                           className="sr-only"
                         />
@@ -165,8 +200,11 @@ const Register = () => {
                       <button
                         className="absolute top-2 -right-1"
                         type="button"
-                        disabled={!profilePic}
-                        onClick={() => setProfilePic(null)}
+                        disabled={!avatarPreview}
+                        onClick={() => {
+                          setAvatarPreview('');
+                          setAvatar('');
+                        }}
                       >
                         <BsX className="h-5 w-5 box-content p-1 rounded-full bg-white border" />
                       </button>
@@ -178,12 +216,12 @@ const Register = () => {
                   <button
                     type="submit"
                     disabled={
-                      !formData?.email || formData?.password?.length < 6
+                      !name || !email || !password || !avatar || loading
                     }
-                    className="w-full disabled:opacity-90 disabled:cursor-not-allowed flex items-center gap-2 justify-center py-2 px-4 border border-transparent rounded-md text-sm font-normal bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                    className="w-full disabled:opacity-90 disabled:cursor-not-allowed flex items-center gap-2 justify-center py-2 px-4 border border-transparent rounded-md text-sm font-medium bg-black hover:bg-opacity-80 disabled:hover:bg-opacity-100 text-white tracking-wider uppercase focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-black"
                   >
-                    <span>Register</span>
-                    <FiUserPlus className="text-xl" />
+                    <span>{loading ? 'Processing...' : 'Register'}</span>
+                    <FiUserPlus className="text-xl mb-1" />
                   </button>
                 </div>
               </form>

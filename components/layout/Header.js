@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+
+// icons
 import { GiMoebiusTriangle } from 'react-icons/gi';
 import { BsGrid, BsX, BsSliders } from 'react-icons/bs';
-import { FiSearch } from 'react-icons/fi';
-import Link from 'next/link';
+import { RiUserSmileLine } from 'react-icons/ri';
+import { FiSearch, FiChevronDown } from 'react-icons/fi';
+
+// redux
+import { useSelector, useDispatch } from 'react-redux';
+
+// next auth
+import { signOut } from 'next-auth/react';
+
+// components
+import { loadUser } from '../../store/actions/userActions';
 import FilterOffcanvas from '../offcanvases/FilterOffcanvas';
 import MobileMenuOffcanvas from '../offcanvases/MobileMenuOffcanvas';
 
-const Header = () => {
+const Header = ({
+  isFilterOffcanvasOpen,
+  closeFilterOffcanvas,
+  openFilterOffcanvas,
+}) => {
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector((state) => state.auth);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -14,10 +34,14 @@ const Header = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const toggleProfileMenu = () => setIsProfileMenuOpen(!isProfileMenuOpen);
 
-  const [isFilterOffcanvasOpen, setIsFilterOffcanvasOpen] = useState(false);
-  const toggleFilterOffcanvas = () =>
-    setIsFilterOffcanvasOpen(!isFilterOffcanvasOpen);
-  const closeFilterOffcanvas = () => setIsFilterOffcanvasOpen(false);
+  useEffect(() => {
+    dispatch(loadUser());
+  }, [dispatch]);
+
+  const handleLogout = () => {
+    signOut();
+  };
+
   return (
     <>
       <FilterOffcanvas
@@ -37,7 +61,7 @@ const Header = () => {
         {/* <!-- Menu button area --> */}
         <div className="absolute inset-y-0 right-0 pr-4 flex gap-1 items-center md:hidden">
           <button
-            onClick={toggleFilterOffcanvas}
+            onClick={openFilterOffcanvas}
             className="inline-flex items-center gap-2 justify-center p-2 rounded-md text-black hover:text-zinc-500 hover:bg-zinc-100 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-zinc-600"
           >
             <BsSliders className="block h-5 w-5" />
@@ -71,21 +95,10 @@ const Header = () => {
             </div>
           </div>
           <div className="ml-10 pr-4 flex-shrink-0 flex items-center space-x-10">
-            {/* <nav aria-label="Global" className="flex space-x-10">
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Inboxes
-            </a>
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Reporting
-            </a>
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Settings
-            </a>
-          </nav> */}
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
               <button
-                onClick={toggleFilterOffcanvas}
-                className="-mr-2 inline-flex items-center gap-2 justify-center py-2 px-3 rounded-md text-black hover:text-zinc-500 hover:bg-zinc-100 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-zinc-600"
+                onClick={openFilterOffcanvas}
+                className="-mr-2 inline-flex items-center gap-2 justify-center py-2 px-3 rounded-md text-black hover:text-zinc-500 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-zinc-600"
               >
                 <BsSliders />
                 <span>Filters</span>
@@ -94,36 +107,69 @@ const Header = () => {
               <div className="relative inline-block text-left">
                 <button
                   type="button"
-                  className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
+                  className="bg-white hover:bg-gray-100 rounded-md p-1 px-2 flex items-center gap-1 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-600"
                   onClick={toggleProfileMenu}
                 >
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                    alt=""
-                  />
+                  <div className="relative h-9 w-9 rounded-full">
+                    {user && user.avatar ? (
+                      <Image
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-full"
+                        src={user.avatar && user.avatar.url}
+                        alt={user && user.name}
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full object-cover bg-gray-200">
+                        <RiUserSmileLine className="w-full h-full object-cover p-2" />
+                      </div>
+                    )}
+                  </div>
+                  <p>{user && user.name.split(' ')[0]}</p>
+                  <FiChevronDown />
                 </button>
                 <div
                   className={`${
                     isProfileMenuOpen
                       ? 'transform opacity-100 scale-100'
                       : 'transform opacity-0 scale-95 pointer-events-none'
-                  } transition ease-out duration-100 origin-top-right absolute z-30 right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none`}
+                  } transition ease-out duration-100 origin-top-right absolute z-30 right-0 mt-2 w-52 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none`}
                 >
                   <div className="py-1" role="none">
                     {/* <!-- Active: "bg-gray-100", Not Active: "" --> */}
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700"
-                    >
-                      Your Profile
-                    </a>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700"
-                    >
-                      Sign Out
-                    </a>
+                    {user ? (
+                      <>
+                        <Link href="/profile">
+                          <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            My Profile
+                          </a>
+                        </Link>
+                        <Link href="/profile/bookings">
+                          <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            My Bookings
+                          </a>
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex w-full"
+                        >
+                          Log Out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/login">
+                          <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Login
+                          </a>
+                        </Link>
+                        <Link href="/register">
+                          <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            register
+                          </a>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
